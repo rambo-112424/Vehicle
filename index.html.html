@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>车橱窗 · 展厅</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f4f4f2;color:#1a1a1a;min-height:100vh}
+
+.header{background:#fff;border-bottom:1px solid #e8e8e4;padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:34px;height:34px;background:#E9A800;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.logo-name{font-size:16px;font-weight:600}
+.logo-sub{font-size:10px;color:#999;letter-spacing:0.1em}
+.header-right{font-size:13px;color:#888}
+.header-right span{font-size:20px;font-weight:600;color:#1a1a1a;margin-left:4px}
+
+.toolbar{background:#fff;border-bottom:1px solid #e8e8e4;padding:10px 24px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.view-toggle{display:flex;border:1px solid #e0e0d8;border-radius:8px;overflow:hidden;flex-shrink:0}
+.view-btn{padding:6px 14px;font-size:13px;cursor:pointer;background:#fff;color:#666;border:none;display:flex;align-items:center;gap:5px;transition:all 0.15s;white-space:nowrap}
+.view-btn.active{background:#1a1a1a;color:#fff}
+.search{flex:1;min-width:160px;position:relative}
+.search input{width:100%;padding:7px 12px 7px 32px;border:1px solid #e0e0d8;border-radius:8px;font-size:13px;background:#f9f9f7;outline:none;color:#1a1a1a}
+.search input:focus{border-color:#E9A800;background:#fff}
+.search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:#aaa;font-size:14px}
+.filters{display:flex;gap:6px;flex-wrap:wrap}
+.filter-btn{padding:6px 12px;border:1px solid #e0e0d8;border-radius:6px;font-size:12px;cursor:pointer;background:#fff;color:#555;transition:all 0.15s;white-space:nowrap}
+.filter-btn.active{background:#E9A800;border-color:#E9A800;color:#fff;font-weight:500}
+.count-badge{font-size:12px;color:#999;white-space:nowrap}
+
+/* ── 网格视图 ── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;padding:20px 24px}
+.card{background:#fff;border-radius:14px;overflow:hidden;border:1px solid #eaeae6;transition:transform 0.15s,box-shadow 0.15s;cursor:pointer}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.08)}
+.card-img{height:150px;position:relative;display:flex;align-items:center;justify-content:center;background:#f0eeea}
+.card-img img{width:100%;height:100%;object-fit:cover}
+.card-img .placeholder{font-size:44px}
+.badge-status{position:absolute;top:9px;left:9px;padding:3px 8px;border-radius:5px;font-size:11px;font-weight:600}
+.badge-on{background:#1a7a3c;color:#fff}
+.badge-off{background:#c0392b;color:#fff}
+.badge-rec{position:absolute;top:9px;right:9px;background:#E9A800;color:#fff;padding:3px 8px;border-radius:5px;font-size:11px;font-weight:600}
+.badge-video{position:absolute;bottom:9px;right:9px;background:rgba(0,0,0,0.6);color:#fff;padding:3px 8px;border-radius:5px;font-size:11px}
+.card-body{padding:12px}
+.card-name{font-size:14px;font-weight:600;margin-bottom:2px}
+.card-meta{font-size:11px;color:#888;margin-bottom:8px}
+.card-footer{display:flex;align-items:center;justify-content:space-between}
+.card-price{font-size:16px;font-weight:700}
+.card-price em{font-size:11px;font-weight:400;color:#888;font-style:normal}
+.btn-enquire{padding:5px 12px;background:#E9A800;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer}
+.btn-enquire:hover{background:#d4980a}
+
+/* ── 表格视图 ── */
+.table-wrap{padding:16px 24px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #eaeae6;font-size:13px;min-width:900px}
+thead{background:#1a1a1a}
+thead th{color:#fff;font-weight:500;padding:11px 14px;text-align:left;white-space:nowrap;font-size:12px}
+thead th .sort{color:#888;font-size:11px;cursor:pointer;user-select:none;margin-left:3px}
+thead th .sort:hover{color:#E9A800}
+tbody tr{border-bottom:1px solid #f0f0ee;transition:background 0.1s;cursor:pointer}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:#fffbf0}
+tbody tr.highlighted{background:#fffde8}
+tbody td{padding:10px 14px;vertical-align:middle;color:#333}
+td.name{font-weight:500;color:#1a1a1a}
+.t-status{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.t-on{background:#e6f4ec;color:#1a7a3c}
+.t-off{background:#fce8e8;color:#c0392b}
+.t-rec{color:#E9A800;font-weight:600}
+.t-img{width:52px;height:36px;object-fit:cover;border-radius:5px;border:1px solid #eee;vertical-align:middle}
+.t-img-placeholder{width:52px;height:36px;background:#f0eeea;border-radius:5px;border:1px solid #eee;display:inline-flex;align-items:center;justify-content:center;font-size:18px}
+.t-video{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:#f5f5f3;border-radius:4px;font-size:11px;color:#555;text-decoration:none}
+.t-video:hover{background:#ffe8a0}
+.add-row td{color:#aaa;font-size:13px;text-align:center;padding:12px;cursor:pointer}
+.add-row:hover td{color:#E9A800;background:#fffbf0}
+
+/* ── 详情弹窗 ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;padding:20px}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto}
+.modal-img{width:100%;height:220px;object-fit:cover;border-radius:16px 16px 0 0}
+.modal-img-ph{width:100%;height:180px;background:#f0eeea;border-radius:16px 16px 0 0;display:flex;align-items:center;justify-content:center;font-size:60px}
+.modal-body{padding:20px}
+.modal-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.modal-name{font-size:20px;font-weight:700}
+.modal-close{width:28px;height:28px;border-radius:50%;background:#f0f0ee;border:none;font-size:16px;cursor:pointer;color:#666;display:flex;align-items:center;justify-content:center}
+.modal-price{font-size:26px;font-weight:700;color:#E9A800;margin:8px 0 16px}
+.modal-price em{font-size:14px;font-weight:400;color:#888;font-style:normal}
+.specs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.spec{background:#f9f9f7;border-radius:8px;padding:9px 12px}
+.spec-l{font-size:11px;color:#999;margin-bottom:2px}
+.spec-v{font-size:13px;font-weight:500}
+.modal-note{font-size:13px;color:#555;line-height:1.7;background:#fffbf0;border-left:3px solid #E9A800;padding:10px 12px;border-radius:0 8px 8px 0;margin-bottom:14px}
+.modal-video-link{display:flex;align-items:center;gap:6px;padding:10px 12px;background:#f5f5f3;border-radius:8px;margin-bottom:14px;font-size:13px;color:#333;text-decoration:none}
+.modal-video-link:hover{background:#ffe8a0}
+.modal-btn{width:100%;padding:13px;background:#E9A800;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
+.modal-btn:hover{background:#d4980a}
+
+.empty{text-align:center;padding:60px 20px;color:#bbb;grid-column:1/-1}
+.empty-icon{font-size:44px;margin-bottom:10px}
+
+@media(max-width:640px){
+  .grid{grid-template-columns:1fr 1fr;gap:10px;padding:12px}
+  .table-wrap{padding:12px}
+  .toolbar{padding:10px 12px}
+  .header{padding:0 14px}
+}
+@media(max-width:380px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">🚗</div>
+    <div>
+      <div class="logo-name">车橱窗</div>
+      <div class="logo-sub">SHOWROOM</div>
+    </div>
+  </div>
+  <div class="header-right">库存 <span id="total-count">0</span></div>
+</div>
+
+<div class="toolbar">
+  <div class="view-toggle">
+    <button class="view-btn" id="btn-table" onclick="switchView('table')">▦ 表格</button>
+    <button class="view-btn active" id="btn-grid" onclick="switchView('grid')">⊞ 网店</button>
+  </div>
+  <div class="search">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="search-input" placeholder="搜索车型、品牌、颜色…" oninput="render()">
+  </div>
+  <div class="filters">
+    <button class="filter-btn active" onclick="setFilter('全部',this)">全部</button>
+    <button class="filter-btn" onclick="setFilter('在售',this)">在售</button>
+    <button class="filter-btn" onclick="setFilter('已售罄',this)">已售罄</button>
+    <button class="filter-btn" onclick="setFilter('推荐',this)">⭐ 推荐</button>
+  </div>
+  <div class="count-badge" id="result-count"></div>
+</div>
+
+<div id="grid-view" class="grid"></div>
+<div id="table-view" class="table-wrap" style="display:none">
+  <table>
+    <thead>
+      <tr>
+        <th>车型 <span class="sort" onclick="sortBy('name')">↕</span></th>
+        <th>品牌 <span class="sort" onclick="sortBy('brand')">↕</span></th>
+        <th>年份 <span class="sort" onclick="sortBy('year')">↕</span></th>
+        <th>颜色</th>
+        <th>里程(km) <span class="sort" onclick="sortBy('km')">↕</span></th>
+        <th>售价(元) <span class="sort" onclick="sortBy('price')">↕</span></th>
+        <th>库存 <span class="sort" onclick="sortBy('stock')">↕</span></th>
+        <th>图片</th>
+        <th>▶ 视频</th>
+        <th>状态 <span class="sort" onclick="sortBy('status')">↕</span></th>
+        <th>推荐</th>
+      </tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+  </table>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal-box"></div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+//  ✏️  填你的车辆信息
+//  img:   图片网址（留空显示默认图标）
+//  video: 视频网址（抖音/微信/B站等，留空不显示）
+//  stock: 库存数量
+// ════════════════════════════════════════════════
+const CARS = [
+  {
+    name:"汉 EV 四驱", brand:"比亚迪", year:2024, color:"雪域白",
+    km:8900, price:215800, stock:4,
+    status:"在售", recommend:true,
+    note:"续航605km，四驱性能版，准新车",
+    img:"", video:""
+  },
+  {
+    name:"宝马 325Li", brand:"宝马", year:2023, color:"矿石灰",
+    km:19800, price:299000, stock:1,
+    status:"在售", recommend:true,
+    note:"运动套装，抬头显示，全景天窗",
+    img:"", video:"https://example.com/video1"
+  },
+  {
+    name:"奥迪 A4L 40TFSI", brand:"奥迪", year:2022, color:"极地白",
+    km:33200, price:278000, stock:2,
+    status:"在售", recommend:false,
+    note:"原车主一手，保养记录完整",
+    img:"", video:""
+  },
+  {
+    name:"思域 1.5T", brand:"本田", year:2023, color:"炫动蓝",
+    km:15400, price:139900, stock:5,
+    status:"在售", recommend:false,
+    note:"年轻人首选，油耗低，驾驶感好",
+    img:"", video:""
+  },
+  {
+    name:"凯美瑞 2.5G", brand:"丰田", year:2021, color:"铂金灰",
+    km:52000, price:185000, stock:0,
+    status:"已售罄", recommend:false,
+    note:"双擎混动，家用省油神车",
+    img:"", video:""
+  },
+  {
+    name:"ID.4 X", brand:"大众", year:2024, color:"流光银",
+    km:7200, price:199900, stock:3,
+    status:"在售", recommend:false,
+    note:"纯电SUV，准新车，质保未过",
+    img:"", video:""
+  },
+  {
+    name:"秦 PLUS DM-i", brand:"比亚迪", year:2024, color:"冰川蓝",
+    km:3100, price:115800, stock:6,
+    status:"在售", recommend:false,
+    note:"插混，亏电油耗5L，通勤利器",
+    img:"", video:""
+  },
+  {
+    name:"奥迪 A6L 45TFSI", brand:"奥迪", year:2023, color:"凌厉黑",
+    km:21000, price:438000, stock:1,
+    status:"在售", recommend:true,
+    note:"行政旗舰，全程4S保养，无事故",
+    img:"", video:"https://example.com/video2"
+  },
+  {
+    name:"雅阁 2.0L", brand:"本田", year:2021, color:"睿石黑",
+    km:41000, price:152000, stock:0,
+    status:"已售罄", recommend:false,
+    note:"家用舒适，空间大，性价比高",
+    img:"", video:""
+  },
+];
+
+// 联系方式
+const CONTACT = "微信：your_wechat_id  |  电话：138-0000-0000";
+
+// ════════════════════════════════════════════════
+const ICONS = {"比亚迪":"🟢","宝马":"🔵","奥迪":"⚫","本田":"🔴","丰田":"⚪","大众":"🔷"};
+const icon = c => ICONS[c.brand] || "🚗";
+const fmt = n => Number(n).toLocaleString("zh-CN");
+
+let currentView = "grid";
+let currentFilter = "全部";
+let sortKey = null, sortDir = 1;
+
+function setFilter(f, el){
+  currentFilter = f;
+  document.querySelectorAll(".filter-btn").forEach(b=>b.classList.remove("active"));
+  el.classList.add("active");
+  render();
+}
+
+function switchView(v){
+  currentView = v;
+  document.getElementById("grid-view").style.display = v==="grid" ? "grid" : "none";
+  document.getElementById("table-view").style.display = v==="table" ? "block" : "none";
+  document.getElementById("btn-grid").className = "view-btn" + (v==="grid" ? " active" : "");
+  document.getElementById("btn-table").className = "view-btn" + (v==="table" ? " active" : "");
+  render();
+}
+
+function sortBy(key){
+  if(sortKey===key) sortDir*=-1; else { sortKey=key; sortDir=1; }
+  render();
+}
+
+function getFiltered(){
+  const q = document.getElementById("search-input").value.trim().toLowerCase();
+  let list = CARS.filter(c=>{
+    if(currentFilter==="在售" && c.status!=="在售") return false;
+    if(currentFilter==="已售罄" && c.status!=="已售罄") return false;
+    if(currentFilter==="推荐" && !c.recommend) return false;
+    if(q && !(c.name+c.brand+c.color+c.note).toLowerCase().includes(q)) return false;
+    return true;
+  });
+  if(sortKey) list = [...list].sort((a,b)=>{
+    let av=a[sortKey], bv=b[sortKey];
+    if(typeof av==="string") return av.localeCompare(bv)*sortDir;
+    return (av-bv)*sortDir;
+  });
+  return list;
+}
+
+function render(){
+  const list = getFiltered();
+  document.getElementById("total-count").textContent = CARS.filter(c=>c.status==="在售").length;
+  document.getElementById("result-count").textContent = "共 "+list.length+" 辆";
+  currentView==="grid" ? renderGrid(list) : renderTable(list);
+}
+
+function renderGrid(list){
+  const el = document.getElementById("grid-view");
+  if(!list.length){
+    el.innerHTML=`<div class="empty"><div class="empty-icon">🔍</div>没有找到符合条件的车辆</div>`;
+    return;
+  }
+  el.innerHTML = list.map(c=>{
+    const idx = CARS.indexOf(c);
+    return `<div class="card" onclick="openModal(${idx})">
+      <div class="card-img">
+        ${c.img ? `<img src="${c.img}" alt="${c.name}" loading="lazy">` : `<div class="placeholder">${icon(c)}</div>`}
+        <span class="badge-status ${c.status==="在售"?"badge-on":"badge-off"}">${c.status}</span>
+        ${c.recommend ? `<span class="badge-rec">推荐</span>` : ""}
+        ${c.video ? `<span class="badge-video">▶ 视频</span>` : ""}
+      </div>
+      <div class="card-body">
+        <div class="card-name">${c.name}</div>
+        <div class="card-meta">${c.brand} · ${c.year}年 · ${fmt(c.km)}km · ${c.color}</div>
+        <div class="card-footer">
+          <div class="card-price">${fmt(c.price)}<em> 元</em></div>
+          <button class="btn-enquire" onclick="event.stopPropagation();enquire('${c.name}')">询价</button>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function renderTable(list){
+  const tb = document.getElementById("table-body");
+  tb.innerHTML = list.map(c=>{
+    const idx = CARS.indexOf(c);
+    return `<tr onclick="openModal(${idx})">
+      <td class="name">${c.name}</td>
+      <td>${c.brand}</td>
+      <td>${c.year}</td>
+      <td>${c.color}</td>
+      <td>${fmt(c.km)}</td>
+      <td>${fmt(c.price)}</td>
+      <td>${c.stock}</td>
+      <td>${c.img
+        ? `<img class="t-img" src="${c.img}" alt="">`
+        : `<div class="t-img-placeholder">${icon(c)}</div>`}</td>
+      <td>${c.video
+        ? `<a class="t-video" href="${c.video}" target="_blank" onclick="event.stopPropagation()">▶ 视频</a>`
+        : ""}</td>
+      <td><span class="t-status ${c.status==="在售"?"t-on":"t-off"}">${c.status}</span></td>
+      <td>${c.recommend ? `<span class="t-rec">是</span>` : ""}</td>
+    </tr>`;
+  }).join("") +
+  `<tr class="add-row"><td colspan="11" onclick="alert('请在 HTML 文件的 CARS 数组中添加新车辆信息')">＋ 添加车辆</td></tr>`;
+}
+
+function openModal(i){
+  const c = CARS[i];
+  document.getElementById("modal-box").innerHTML = `
+    ${c.img
+      ? `<img class="modal-img" src="${c.img}" alt="${c.name}">`
+      : `<div class="modal-img-ph">${icon(c)}</div>`}
+    <div class="modal-body">
+      <div class="modal-top">
+        <div class="modal-name">${c.name}</div>
+        <button class="modal-close" onclick="document.getElementById('overlay').classList.remove('open')">×</button>
+      </div>
+      <div class="modal-price">${fmt(c.price)}<em> 元</em></div>
+      <div class="specs">
+        <div class="spec"><div class="spec-l">品牌</div><div class="spec-v">${c.brand}</div></div>
+        <div class="spec"><div class="spec-l">年份</div><div class="spec-v">${c.year} 年</div></div>
+        <div class="spec"><div class="spec-l">里程</div><div class="spec-v">${fmt(c.km)} km</div></div>
+        <div class="spec"><div class="spec-l">颜色</div><div class="spec-v">${c.color}</div></div>
+        <div class="spec"><div class="spec-l">库存</div><div class="spec-v">${c.stock} 辆</div></div>
+        <div class="spec"><div class="spec-l">状态</div><div class="spec-v">${c.status}</div></div>
+      </div>
+      ${c.note ? `<div class="modal-note">${c.note}</div>` : ""}
+      ${c.video ? `<a class="modal-video-link" href="${c.video}" target="_blank">▶ 点击观看视频</a>` : ""}
+      <button class="modal-btn" onclick="enquire('${c.name}')">立即询价</button>
+    </div>`;
+  document.getElementById("overlay").classList.add("open");
+}
+
+function closeModal(e){
+  if(e.target.id==="overlay") document.getElementById("overlay").classList.remove("open");
+}
+
+function enquire(name){
+  alert("感谢您对【"+name+"】的关注！\n\n"+CONTACT);
+}
+
+render();
+</script>
+</body>
+</html>
